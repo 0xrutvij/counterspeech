@@ -20,21 +20,21 @@ class PreProcessor:
         train_df.to_csv(self.train_csv, index=False)
         test_df.to_csv(self.test_csv, index=False)
 
+    @property
+    def _preprocessors(self):
+        return {
+            "conan": self._preprocess_conan,
+            "multi_target_conan": self._preprocess_multi_target_conan,
+            "multi_target_kn_gr_conan": self._preprocess_multi_target_kn_gr_conan,
+        }
+
     def _preprocess(self) -> Pairs:
-        match self.dataset_name:
-            case "conan":
-                return self._preprocess_conan()
+        preprocessor = self._preprocessors.get(self.dataset_name)
 
-            case "multi_target_conan":
-                return self._preprocess_multi_target_conan()
+        if preprocessor is None:
+            raise NotImplementedError(f"Dataset {self.dataset_name} is not supported")
 
-            case "multi_target_kn_gr_conan":
-                return self._preprocess_multi_target_kn_gr_conan()
-
-            case _:
-                raise NotImplementedError(
-                    f"Dataset {self.dataset_name} is not supported"
-                )
+        return preprocessor()
 
     def _preprocess_multi_target_conan(self) -> Pairs:
         pairs = Pairs()
