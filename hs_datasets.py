@@ -1,8 +1,8 @@
-import requests
-from pathlib import Path
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 import pandas as pd
+import requests
 
 URLS = {
     "conan": (
