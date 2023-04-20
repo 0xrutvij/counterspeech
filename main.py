@@ -1,14 +1,16 @@
-from datasets import load_dataset
+from functools import partial
+from pathlib import Path
 
-from hs_datasets import DatasetFactory
+from counterspeech import DatasetFactory, HSCSDataset
 
-conan = DatasetFactory.get_dataset("conan")
-mtconan = DatasetFactory.get_dataset("multi_target_conan")
-mtknconan = DatasetFactory.get_dataset("multi_target_kn_gr_conan")
+load_dataset_at_path = partial(DatasetFactory.get_dataset, data_dir=Path("data"))
 
-conan_trts = load_dataset("csv", data_files=conan)
+
+conan_trts = load_dataset_at_path(HSCSDataset.conan)
 print(conan_trts)
-mtconan_trts = load_dataset("csv", data_files=mtconan)
+
+mtconan_trts = load_dataset_at_path(HSCSDataset.multi_target_conan)
 print(mtconan_trts)
-mtknconan_trts = load_dataset("csv", data_files=mtknconan)
+
+mtknconan_trts = load_dataset_at_path(HSCSDataset.multi_target_kn_gr_conan)
 print(mtknconan_trts)
