@@ -1,0 +1,30 @@
+#! /usr/bin/env python3
+
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+executable = sys.executable
+
+dist_latest_dir = Path("dist-latest")
+
+output = subprocess.check_output([executable, "setup.py", "sdist"])
+
+lines = output.decode("utf-8").splitlines()
+
+dist_name = lines[-1].split("'")[1]
+
+dist_root = dist_name.split("-")[0]
+
+dist_created = f"dist/{dist_name}.tar.gz"
+
+print("Built", dist_created)
+
+dist_latest = dist_latest_dir / f"{dist_root}.tar.gz"
+
+print("Copying to", dist_latest)
+
+shutil.copyfile(dist_created, dist_latest)
+
+print("Done")
