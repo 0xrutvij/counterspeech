@@ -11,13 +11,17 @@ class PreProcessor:
         self.dataset_name = data_csv.stem
         self.train_csv = data_csv.parent / f"{data_csv.stem}_train.csv"
         self.test_csv = data_csv.parent / f"{data_csv.stem}_test.csv"
+        self.val_csv = data_csv.parent / f"{data_csv.stem}_val.csv"
 
     def run(self):
         pairs = self._preprocess()
         pairs_df = pairs.to_pandas()
-        train_df = pairs_df.sample(frac=0.8, random_state=42)
-        test_df = pairs_df.drop(train_df.index)
+        trainval_df = pairs_df.sample(frac=0.9, random_state=42)
+        test_df = pairs_df.drop(trainval_df.index)
+        train_df = trainval_df.sample(frac=0.889, random_state=42)
+        val_df = trainval_df.drop(train_df.index)
         train_df.to_csv(self.train_csv, index=False)
+        val_df.to_csv(self.val_csv, index=False)
         test_df.to_csv(self.test_csv, index=False)
 
     @property

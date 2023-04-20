@@ -50,6 +50,7 @@ class DatasetFactory:
         data_files = {
             "train": str(preprocessor.train_csv),
             "test": str(preprocessor.test_csv),
+            "val": str(preprocessor.val_csv),
         }
 
         dsdc = load_dataset("csv", data_files=data_files)
