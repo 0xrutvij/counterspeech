@@ -1,2 +1,7 @@
 datasets
 transformers
+black
+flake8
+isort
+pre-commit
+pylint
