@@ -1,3 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
+*.eg
+.mypy_cache
+data/
+
+.DS_Store
+.vscode/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
