@@ -1,28 +1,44 @@
-from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
 from datasets import load_dataset
 from datasets.dataset_dict import DatasetDict
 
-from .preprocesssor import PreProcessor
+from .preprocesssor import ConanPreprocessor
 from .utils import download_file
-
-DatasetProperties = namedtuple("DatasetProperties", "url")
 
 GH_SOURCE1 = "https://raw.githubusercontent.com/marcoguerini/CONAN/master"
 
 
+@dataclass
+class DatasetProperties:
+    url: str
+    max_output_length: int
+    train_ratio: float
+
+
 class HSCSDataset(DatasetProperties, Enum):
     conan = DatasetProperties(
-        f"{GH_SOURCE1}/CONAN/CONAN.csv",
+        url=f"{GH_SOURCE1}/CONAN/CONAN.csv",
+        max_output_length=150,
+        train_ratio=0.8,
     )
     multi_target_conan = DatasetProperties(
-        f"{GH_SOURCE1}/Multitarget-CONAN/Multitarget-CONAN.csv",
+        url=f"{GH_SOURCE1}/Multitarget-CONAN/Multitarget-CONAN.csv",
+        max_output_length=150,
+        train_ratio=0.8,
     )
     multi_target_kn_gr_conan = DatasetProperties(
-        f"{GH_SOURCE1}/multitarget_KN_grounded_CN/multitarget_KN_grounded_CN.csv",
+        url=f"{GH_SOURCE1}/multitarget_KN_grounded_CN/multitarget_KN_grounded_CN.csv",
+        max_output_length=150,
+        train_ratio=0.8,
     )
+
+    def __init__(self, dataset_properties: DatasetProperties):
+        self.url = dataset_properties.url
+        self.max_output_length = dataset_properties.max_output_length
+        self.train_ratio = dataset_properties.train_ratio
 
     def __str__(self) -> str:
         return self.name
@@ -42,7 +58,7 @@ class DatasetFactory:
     @classmethod
     def get_dataset(cls, dataset: HSCSDataset, data_dir: Path) -> DatasetDict:
         data_csv = dataset.download(data_dir)
-        preprocessor = PreProcessor(data_csv)
+        preprocessor = ConanPreprocessor(data_csv)
 
         if not preprocessor.train_csv.exists() or not preprocessor.test_csv.exists():
             preprocessor.run()

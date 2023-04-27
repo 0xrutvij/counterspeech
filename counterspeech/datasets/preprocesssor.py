@@ -5,20 +5,29 @@ import pandas as pd
 from .pairs import Pairs
 
 
-class PreProcessor:
-    def __init__(self, data_csv: Path):
+class ConanPreprocessor:
+    def __init__(self, data_csv: Path, train_ratio: float = 0.8, seed: int = 42):
         self.data_csv = data_csv
         self.dataset_name = data_csv.stem
-        self.train_csv = data_csv.parent / f"{data_csv.stem}_train.csv"
-        self.test_csv = data_csv.parent / f"{data_csv.stem}_test.csv"
-        self.val_csv = data_csv.parent / f"{data_csv.stem}_val.csv"
+        self.train_ratio = train_ratio
+        self.test_ratio = round(
+            (1 - self.train_ratio) / 2, len(str(self.train_ratio).split(".")[1])
+        )
+        self.train_csv = (
+            data_csv.parent / f"{data_csv.stem}_{self.train_ratio}_train.csv"
+        )
+        self.test_csv = data_csv.parent / f"{data_csv.stem}_{self.test_ratio}_test.csv"
+        self.val_csv = data_csv.parent / f"{data_csv.stem}_{self.test_ratio}_val.csv"
+        self.seed = seed
 
     def run(self):
+        tval_ratio = 1 - self.test_ratio
+        new_train_ratio = self.train_ratio / tval_ratio
         pairs = self._preprocess()
         pairs_df = pairs.to_pandas()
-        trainval_df = pairs_df.sample(frac=0.9, random_state=42)
+        trainval_df = pairs_df.sample(frac=tval_ratio, random_state=self.seed)
         test_df = pairs_df.drop(trainval_df.index)
-        train_df = trainval_df.sample(frac=0.889, random_state=42)
+        train_df = trainval_df.sample(frac=new_train_ratio, random_state=self.seed)
         val_df = trainval_df.drop(train_df.index)
         train_df.to_csv(self.train_csv, index=False)
         val_df.to_csv(self.val_csv, index=False)
