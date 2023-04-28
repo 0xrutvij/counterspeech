@@ -38,10 +38,6 @@ class GPT2:
         if self.model_name_or_path is None:
             self.model_name_or_path = Macros.models[self.__class__.__name__.lower()]
 
-        self.model_dir = (
-            Macros.result_dir / "model_hf" / self.model_name.replace("/", "_")
-        )
-        self.model_dir.mkdir(parents=True, exist_ok=True)
         self.prompt = Macros.gpt2_prompt
         self.config = GPT2Config.from_pretrained(
             self.model_name, output_hidden_states=False
@@ -103,16 +99,3 @@ class GPT2:
         print("Saving model...")
         trainer.save_model()
         return
-
-    def generate(self, input_seq: str, max_length: int):
-        eos_token = self.tokenizer.eos_token
-        input_with_prompt = f"{self.prompt}: {input_seq} {eos_token}"
-        input_ids = self.tokenizer.encode(input_with_prompt, return_tensors="pt")
-        outputs = self.model.generate(
-            input_ids.to(self.device), max_length=max_length, do_sample=True
-        )
-        for i, beam in enumerate(outputs):
-            out_texts = self.tokenizer.decode(beam, skip_special_tokens=True)
-            print(f"{i}: {out_texts}\n")
-        # end for
-        return outputs

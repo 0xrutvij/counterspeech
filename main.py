@@ -8,10 +8,9 @@ from pyspark.sql import DataFrame, SparkSession
 from transformers import TrainingArguments
 
 from counterspeech import DatasetFactory, HSCSDataset
-from counterspeech.config.gpt_confs import get_dialo_gpt_conf, get_gpt2_conf
+from counterspeech.config.gpt_confs import get_dialo_gpt_conf
 from counterspeech.config.macros import Macros
 from counterspeech.models.dialo_gpt import DialoGPT
-from counterspeech.models.gpt2 import GPT2
 from counterspeech.modules.hf_gpt2_trainer import GPT2Trainer
 from counterspeech.modules.response_generator import ResponseGenerator
 from counterspeech.modules.trainer import Trainer
@@ -71,11 +70,6 @@ def run_trainer(args: argparse.Namespace):
     trainer.evaluate()
 
 
-def _gpt2_pipeline():
-    get_gpt2_conf
-    _ = GPT2()
-
-
 def _dialo_gpt2_pipeline():
     model = DialoGPT()
     dataset = load_dataset(HSCSDataset.conan)
@@ -108,10 +102,6 @@ def _dialo_gpt2_pipeline():
         show_n=10,
         batch_size=32,
     )
-
-
-def gpt2t_trainer(args: argparse.Namespace):
-    pass
 
 
 def examples(args: argparse.Namespace):
