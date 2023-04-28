@@ -78,6 +78,7 @@ class ResponseGenerator:
         ):
             min_new_tokens = params_for_generation["min_new_tokens"]
             min_new_token_lp = MinNewTokensLengthLogitsProcessor(
+                prompt_length_to_skip=input_len,
                 min_new_tokens=min_new_tokens,
                 eos_token_id=self.tokenizer.eos_token_id,
             )
