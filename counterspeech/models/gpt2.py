@@ -36,7 +36,7 @@ class GPT2:
         self.config = GPT2Config.from_pretrained(self.model_name, output_hidden_states=False)
         self.tokenizer = GPT2Tokenizer.from_pretrained(model_name_or_path)
         self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
-        self.model.resize_token_embeddings(len(tokenizer))
+        self.model.resize_token_embeddings(len(self.tokenizer))
         self.model = GPT2LMHeadModel.from_pretrained(
             model_name_or_path,
             config=self.config
@@ -72,7 +72,7 @@ class GPT2:
             model_name: str = "microsoft/DialoGPT-medium",
             freeze_n: int = 0
         ):
-        self.model = freeze_n_layers(self.model, freeze_n)
+        self.model = self.freeze_n_layers(self.model, freeze_n)
         data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
         tokenized_dataset = tokenize(dataset, tokenizer)
         trainer = Trainer(
