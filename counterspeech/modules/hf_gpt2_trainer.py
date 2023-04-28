@@ -32,7 +32,7 @@ class GPT2Trainer:
         tokenized_dataset = tokenize(dataset, model.tokenizer)
 
         trainer = Trainer(
-            model=model,
+            model=model.model,
             args=training_args,
             data_collator=model.data_collator,
             train_dataset=tokenized_dataset["train"],
