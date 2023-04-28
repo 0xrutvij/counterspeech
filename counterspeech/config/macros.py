@@ -29,7 +29,6 @@ class Macros:
     models = {"gpt2": "openai-gpt"}
 
     # ==========
-    # sparknlp
     BATCH_SIZE = 32
     LR = 1e-4
     EPOCHS = 5

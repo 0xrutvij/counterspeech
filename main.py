@@ -1,10 +1,7 @@
 import argparse
 import random
-from pathlib import Path
 
-import sparknlp
-from datasets import Dataset, DatasetDict
-from pyspark.sql import DataFrame, SparkSession
+from datasets import DatasetDict
 from transformers import TrainingArguments
 
 from counterspeech import DatasetFactory, HSCSDataset
@@ -13,7 +10,6 @@ from counterspeech.config.macros import Macros
 from counterspeech.models.dialo_gpt import DialoGPT
 from counterspeech.modules.hf_gpt2_trainer import GPT2Trainer
 from counterspeech.modules.response_generator import ResponseGenerator
-from counterspeech.modules.trainer import Trainer
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -33,8 +29,8 @@ parser.add_argument(
 parser.add_argument(
     "--run",
     type=str,
-    default="trainer",
-    choices=["trainer", "examples", "gp2t_trainer"],
+    default="examples",
+    choices=["examples", "gp2t_trainer"],
     help="task to be run",
 )
 parser.add_argument(
@@ -52,22 +48,6 @@ def set_seed(seed_num: int):
 
 def load_dataset(dataset: HSCSDataset) -> DatasetDict:
     return DatasetFactory.get_dataset(dataset, Macros.dataset_dir)
-
-
-def huggingface_dataset_to_spark_df(ss: SparkSession, hf_dataset: Dataset) -> DataFrame:
-    ss.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
-    return ss.createDataFrame(hf_dataset)
-
-
-def run_trainer(args: argparse.Namespace):
-    Macros.set_storage_dir(Path("/nas1-nfs1/data/jxl115330/csgen4hs"))
-    trainer = Trainer(
-        model_type=args.model,
-        dataset_name=args.dataset,
-        seed_num=args.seed_num,
-    )
-    trainer.train()
-    trainer.evaluate()
 
 
 def _dialo_gpt2_pipeline():
@@ -105,15 +85,11 @@ def _dialo_gpt2_pipeline():
 
 
 def examples(args: argparse.Namespace):
-    spark = sparknlp.start()
     ddict = load_dataset(HSCSDataset[args.dataset])
     print(ddict)
-    tr_df = huggingface_dataset_to_spark_df(spark, ddict["train"])
-    tr_df.show()
 
 
 FUNC_MAP = {
-    "trainer": run_trainer,
     "examples": examples,
 }
 
