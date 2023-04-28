@@ -40,7 +40,7 @@ class GPT2:
 
         self.prompt = Macros.gpt2_prompt
         self.config = GPT2Config.from_pretrained(
-            self.model_name, output_hidden_states=False
+            self.model_name_or_path, output_hidden_states=False
         )
         self.model = GPT2LMHeadModel.from_pretrained(
             self.model_name_or_path, config=self.config
