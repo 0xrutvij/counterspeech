@@ -1,56 +1,57 @@
-from datasets import DatasetDict
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    GPT2LMHeadModel,
-    Trainer,
-    TrainingArguments,
-)
+import os
+import random
+from dataclasses import dataclass
+from typing import Optional
 
-from .utils import DataCollatorForLanguageModeling, tokenize
+import numpy as np
+import torch
+from torch.backends import cudnn
+from transformers import AutoModelForCausalLM, AutoTokenizer, GPT2LMHeadModel
 
+from counterspeech.config.macros import Macros
 
-def freeze_n_layers(model: GPT2LMHeadModel, n: int):
-    """Freeze the first n layers of the model."""
-    for i in range(n):
-        for param in model.h[i].parameters():
-            param.requires_grad = False
-    return model
+from .utils import DataCollatorForLanguageModeling
 
 
-def finetune_dialo_gpt(
-    dataset: DatasetDict,
-    training_args: TrainingArguments,
-    model_name: str = "microsoft/DialoGPT-medium",
-    freeze_n: int = 0,
-):
-    """Train the DialoGPT model."""
+@dataclass
+class DialoGPT:
+    model_name_or_path: Optional[str] = "microsoft/DialoGPT-medium"
+    seed: Optional[int] = None
+    device: Optional[str] = None
 
-    print(f"Fine Tuning {model_name} with {freeze_n} layers frozen")
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    model = freeze_n_layers(model, freeze_n)
+    def __post_init__(self):
+        if self.seed is not None:
+            self._seed_everything(self.seed)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokenizer.add_special_tokens({"pad_token": "[PAD]"})
-    model.resize_token_embeddings(len(tokenizer))
+        if self.device is None:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
-    tokenized_dataset = tokenize(dataset, tokenizer)
+        if self.model_name_or_path is None:
+            self.model_name_or_path = Macros.models[self.__class__.__name__.lower()]
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        data_collator=data_collator,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset["val"],
-        tokenizer=tokenizer,
-    )
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_name_or_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name_or_path)
+        self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
-    print("Training...")
-    trainer.train()
+        self.data_collator = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer, mlm=False
+        )
+        self.model.resize_token_embeddings(len(self.tokenizer))
+        self.model.to(self.device)
+        self.model.eval()
 
-    print("Evaluating...")
-    trainer.evaluate()
+    def _seed_everything(self, seed: int):
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        cudnn.deterministic = True
+        cudnn.benchmark = False
+        os.environ["PYTHONHASHSEED"] = str(seed)
 
-    print("Saving model...")
-    trainer.save_model()
+    def freeze_n_layers(self, model: GPT2LMHeadModel, n: int):
+        """Freeze the first n layers of the model."""
+        for i in range(n):
+            for param in model.h[i].parameters():
+                param.requires_grad = False
+        return model

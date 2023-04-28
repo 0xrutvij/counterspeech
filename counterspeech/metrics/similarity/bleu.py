@@ -22,14 +22,17 @@ class BLEU(Metric):
         return f"BLEU-{self.n_gram}"
 
     def calculate_score(
-        self, predicted_labels: list[str], reference_labels: list[str]
+        self, predicted_labels: list[str], reference_labels: list[list[str]]
     ) -> float:
         assert len(predicted_labels) == len(
             reference_labels
         ), "Length of predicted_labels and reference_labels must be equal"
 
         self.score = corpus_bleu(
-            [[word_tokenize(label)] for label in reference_labels],
+            [
+                [word_tokenize(label) for label in reflist]
+                for reflist in reference_labels
+            ],
             [word_tokenize(label) for label in predicted_labels],
             weights=[1 / self.n_gram for _ in range(self.n_gram)],
         )

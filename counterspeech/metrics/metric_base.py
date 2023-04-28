@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional
 
 
@@ -24,11 +24,3 @@ class Metric(ABC):
 
     def __str__(self) -> str:
         return f"{self.name:<16}: {self.score:>6.3f}"
-
-    @abstractmethod
-    def calculate_score(
-        self,
-        predicted_labels: list[str],
-        reference_labels: list[str],
-    ) -> float:
-        ...

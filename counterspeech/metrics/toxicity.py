@@ -22,9 +22,7 @@ class Toxicity(Metric):
     def name(self) -> str:
         return "toxicity"
 
-    def calculate_score(
-        self, predicted_labels: list[str], reference_labels: list[str]
-    ) -> float:
+    def calculate_score(self, predicted_labels: list[str]) -> float:
         results = self.toxicity.compute(
             predictions=predicted_labels,
         )

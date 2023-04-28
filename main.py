@@ -5,9 +5,15 @@ from pathlib import Path
 import sparknlp
 from datasets import Dataset, DatasetDict
 from pyspark.sql import DataFrame, SparkSession
+from transformers import TrainingArguments
 
 from counterspeech import DatasetFactory, HSCSDataset
+from counterspeech.config.gpt_confs import get_dialo_gpt_conf, get_gpt2_conf
 from counterspeech.config.macros import Macros
+from counterspeech.models.dialo_gpt import DialoGPT
+from counterspeech.models.gpt2 import GPT2
+from counterspeech.modules.hf_gpt2_trainer import GPT2Trainer
+from counterspeech.modules.response_generator import ResponseGenerator
 from counterspeech.modules.trainer import Trainer
 
 parser = argparse.ArgumentParser()
@@ -29,7 +35,7 @@ parser.add_argument(
     "--run",
     type=str,
     default="trainer",
-    choices=["trainer", "examples"],
+    choices=["trainer", "examples", "gp2t_trainer"],
     help="task to be run",
 )
 parser.add_argument(
@@ -63,6 +69,49 @@ def run_trainer(args: argparse.Namespace):
     )
     trainer.train()
     trainer.evaluate()
+
+
+def _gpt2_pipeline():
+    get_gpt2_conf
+    _ = GPT2()
+
+
+def _dialo_gpt2_pipeline():
+    model = DialoGPT()
+    dataset = load_dataset(HSCSDataset.conan)
+    training_args = get_dialo_gpt_conf(
+        dataset_name=HSCSDataset.conan.name,
+        output_base_dir=Macros.result_dir,
+        num_train_epochs=10,
+        batch_size=32,
+        learning_rate=5e-5,
+    )
+
+    GPT2Trainer.finetune(
+        model=model,
+        dataset=dataset,
+        training_args=TrainingArguments(**training_args),
+    )
+
+    GPT2Trainer.evaluate(
+        model=ResponseGenerator(
+            training_args["output_dir"],
+            decoding_conf={
+                "min_new_tokens": 20,
+                "max_new_tokens": 100,
+                "no_repeat_ngram_size": 5,
+                "num_beams": 10,
+            },
+        ),
+        data=dataset,
+        prompt=Macros.gpt2_prompt,
+        show_n=10,
+        batch_size=32,
+    )
+
+
+def gpt2t_trainer(args: argparse.Namespace):
+    pass
 
 
 def examples(args: argparse.Namespace):
