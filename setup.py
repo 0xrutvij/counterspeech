@@ -9,6 +9,7 @@ setup(
     install_requires=[
         "transformers",
         "datasets",
+        "evaluate",
         "numpy",
         "pandas",
         "scikit-learn",
