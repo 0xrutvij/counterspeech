@@ -84,12 +84,14 @@ class ResponseGenerator:
             lps.append(min_new_token_lp)
             min_length_lp = MinLengthLogitsProcessor(
                 min_length=input_len + min_new_tokens,
+                eos_token_id=self.tokenizer.eos_token_id,
             )
             lps.append(min_length_lp)
             params_for_generation.pop("min_new_tokens")
         else:
             min_length_lp = MinLengthLogitsProcessor(
                 min_length=input_len,
+                eos_token_id=self.tokenizer.eos_token_id,
             )
             lps.append(min_length_lp)
 
