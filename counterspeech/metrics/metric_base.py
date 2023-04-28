@@ -18,10 +18,9 @@ class Metric(ABC):
     def score(self, value: float) -> None:
         self._score = value
 
-    @abstractmethod
     @property
     def name(self) -> str:
-        ...
+        raise NotImplementedError("Must be implemented by subclass.")
 
     def __str__(self) -> str:
         return f"{self.name:<16}: {self.score:>6.3f}"
