@@ -95,7 +95,7 @@ class ResponseGenerator:
             )
             lps.append(min_length_lp)
 
-        params_for_generation["logits_processors"] = LogitsProcessorList(lps)
+        params_for_generation["logits_processor"] = LogitsProcessorList(lps)
 
         return params_for_generation
 
