@@ -22,6 +22,8 @@ class GPT2Trainer:
         dataset: DatasetDict,
         model: DialoGPT | GPT2,
         training_args: TrainingArguments,
+        sched: torch.optim.lr_scheduler._LRScheduler,
+        optim: torch.optim.Optimizer,
         freeze_n: int = 0,
     ):
         """Fine Tune the GPT2 models."""
@@ -31,11 +33,6 @@ class GPT2Trainer:
         model.model = model.freeze_n_layers(model.model, freeze_n)
 
         tokenized_dataset = tokenize(dataset, model.tokenizer)
-
-        optim = torch.optim.AdamW(
-            model.model.parameters(), lr=training_args.learning_rate
-        )
-        sched = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=0.8)
 
         trainer = Trainer(
             model=model.model,
