@@ -55,17 +55,19 @@ class GPT2Trainer:
         cs_refs = defaultdict(list)
         cs_list = []
         hs_list = []
+        plain_hs_list = []
 
         for example in data:
             hate_speech = example["hate_speech"]
             counter_speech = example["counter_speech"]
             hs_w_prompt = f"{prompt}\noffensive post: {hate_speech}\ncounterspeech: "
 
+            plain_hs_list.append(hate_speech)
             hs_list.append(hs_w_prompt)
             cs_list.append(counter_speech)
             cs_refs[hate_speech].append(counter_speech)
 
-        return hs_list, cs_list, [cs_refs[hs] for hs in hs_list]
+        return hs_list, cs_list, [cs_refs[hs] for hs in plain_hs_list]
 
     @classmethod
     def show_comp(
