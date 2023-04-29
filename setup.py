@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="counterspeech",
-    version="0.5.6",
+    version="0.5.7",
     description="Auto counterspeech generation for hatespeech",
     packages=find_packages(where="."),
     include_package_data=True,

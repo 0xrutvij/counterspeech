@@ -1,6 +1,3 @@
-import random
-from collections import defaultdict
-
 from colorama import Fore, Style
 from datasets import Dataset, DatasetDict
 from transformers import Trainer, TrainingArguments
@@ -53,8 +50,9 @@ class GPT2Trainer:
     def add_prompt(prompt: str, data: Dataset):
         """Add a prompt to the beginning of each example in the dataset."""
 
-        hs_refs_map = defaultdict(list)
-        hs_w_prompt_map = dict()
+        hs_list = []
+        cs_list = []
+        cs_corpus = set()
 
         for example in data:
             hate_speech = example["hate_speech"]
@@ -62,26 +60,23 @@ class GPT2Trainer:
 
             hs_w_prompt = f"{prompt}\noffensive post: {hate_speech}\ncounterspeech: "
 
-            if hate_speech not in hs_w_prompt_map:
-                hs_w_prompt_map[hate_speech] = hs_w_prompt
-            hs_refs_map[hate_speech].append(counter_speech)
+            if counter_speech not in cs_corpus:
+                cs_corpus.add(counter_speech)
 
-        hate_speech = list(hs_w_prompt_map.values())
-        counter_speech_refs = list(hs_refs_map.values())
+            hs_list.append(hs_w_prompt)
+            cs_list.append(counter_speech)
 
-        return hate_speech, counter_speech_refs
+        return hs_list, cs_list, list(cs_corpus)
 
     @classmethod
     def show_comp(
         cls,
         hate_speech: list[str],
         preds: list[str],
-        counter_speech_refs: list[list[str]],
+        counter_speech: list[str],
         n: int,
     ):
-        for i, (hs, pred, exp) in enumerate(
-            zip(hate_speech, preds, counter_speech_refs)
-        ):
+        for i, (hs, pred, exp) in enumerate(zip(hate_speech, preds, counter_speech)):
             if i >= n:
                 break
             print(
@@ -97,7 +92,7 @@ class GPT2Trainer:
                     + Style.RESET_ALL
                     + "gold >> "
                     + Fore.GREEN
-                    + random.choice(exp)
+                    + exp
                     + "\n"
                     + Style.RESET_ALL
                     + "\n"
@@ -112,13 +107,10 @@ class GPT2Trainer:
         data: Dataset,
         batch_size: int = 32,
     ):
-        hate_speech: list[str]
-        counter_speech_refs: list[list[str]]
-
-        hate_speech, counter_speech_refs = cls.add_prompt(prompt, data)
+        hate_speech, counter_speech, counter_speech_refs = cls.add_prompt(prompt, data)
 
         preds = model.generate_responses(hate_speech, batch_size)
-        return hate_speech, preds, counter_speech_refs
+        return hate_speech, preds, counter_speech, counter_speech_refs
 
     @classmethod
     def _evaluate_bleu(
@@ -155,9 +147,12 @@ class GPT2Trainer:
 
         for split in data:
             print(f"Evaluating on {split}...")
-            hate_speech, preds, counter_speech_refs = cls._generate_counter_speech(
-                model, prompt, data[split], batch_size
-            )
+            (
+                hate_speech,
+                preds,
+                counter_speech,
+                counter_speech_refs,
+            ) = cls._generate_counter_speech(model, prompt, data[split], batch_size)
 
             print(f"Evaluating BLEU on {split}...")
             cls._evaluate_bleu(preds, counter_speech_refs)
@@ -167,6 +162,6 @@ class GPT2Trainer:
 
             if show_n > 0:
                 print(f"Showing {show_n} examples from {split}...")
-                cls.show_comp(hate_speech, preds, counter_speech_refs, show_n)
+                cls.show_comp(hate_speech, preds, counter_speech, show_n)
 
             print("-" * 50)
