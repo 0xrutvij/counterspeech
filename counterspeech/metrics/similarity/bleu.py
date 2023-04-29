@@ -24,10 +24,6 @@ class BLEU(Metric):
     def calculate_score(
         self, predicted_labels: list[str], reference_labels: list[str]
     ) -> float:
-        assert len(predicted_labels) == len(
-            reference_labels
-        ), "Length of predicted_labels and reference_labels must be equal"
-
         refs = [word_tokenize(label) for label in reference_labels]
 
         self.score = corpus_bleu(
