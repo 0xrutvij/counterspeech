@@ -65,7 +65,7 @@ class GPT2Trainer:
             cs_list.append(counter_speech)
             cs_refs[hate_speech].append(counter_speech)
 
-        return hs_list, cs_list, list(cs_refs.values())
+        return hs_list, cs_list, [cs_refs[hs] for hs in hs_list]
 
     @classmethod
     def show_comp(
