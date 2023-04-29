@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from colorama import Fore, Style
 from datasets import Dataset, DatasetDict
 from transformers import Trainer, TrainingArguments
@@ -50,23 +52,20 @@ class GPT2Trainer:
     def add_prompt(prompt: str, data: Dataset):
         """Add a prompt to the beginning of each example in the dataset."""
 
-        hs_list = []
+        cs_refs = defaultdict(list)
         cs_list = []
-        cs_corpus = set()
+        hs_list = []
 
         for example in data:
             hate_speech = example["hate_speech"]
             counter_speech = example["counter_speech"]
-
             hs_w_prompt = f"{prompt}\noffensive post: {hate_speech}\ncounterspeech: "
-
-            if counter_speech not in cs_corpus:
-                cs_corpus.add(counter_speech)
 
             hs_list.append(hs_w_prompt)
             cs_list.append(counter_speech)
+            cs_refs[hate_speech].append(counter_speech)
 
-        return hs_list, cs_list, list(cs_corpus)
+        return hs_list, cs_list, list(cs_refs.values())
 
     @classmethod
     def show_comp(

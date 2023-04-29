@@ -22,12 +22,14 @@ class BLEU(Metric):
         return f"BLEU-{self.n_gram}"
 
     def calculate_score(
-        self, predicted_labels: list[str], reference_labels: list[str]
+        self, predicted_labels: list[str], reference_labels: list[list[str]]
     ) -> float:
-        refs = [word_tokenize(label) for label in reference_labels]
+        refs = [
+            [word_tokenize(label) for label in labels] for labels in reference_labels
+        ]
 
         self.score = corpus_bleu(
-            [refs for _ in range(len(predicted_labels))],
+            refs,
             [word_tokenize(label) for label in predicted_labels],
             weights=[1 / self.n_gram for _ in range(self.n_gram)],
         )
