@@ -35,9 +35,7 @@ class GPT2Trainer:
         optim = torch.optim.AdamW(
             model.model.parameters(), lr=training_args.learning_rate
         )
-        sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer=optim, factor=0.1, patience=2
-        )
+        sched = torch.optim.lr_scheduler.StepLR(optim, step_size=1, gamma=0.8)
 
         trainer = Trainer(
             model=model.model,
