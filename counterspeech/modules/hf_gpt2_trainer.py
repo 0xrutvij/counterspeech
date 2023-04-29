@@ -1,7 +1,6 @@
 import random
 from collections import defaultdict
 
-import torch
 from colorama import Fore, Style
 from datasets import Dataset, DatasetDict
 from transformers import Trainer, TrainingArguments
@@ -22,8 +21,6 @@ class GPT2Trainer:
         dataset: DatasetDict,
         model: DialoGPT | GPT2,
         training_args: TrainingArguments,
-        sched: torch.optim.lr_scheduler._LRScheduler,
-        optim: torch.optim.Optimizer,
         freeze_n: int = 0,
     ):
         """Fine Tune the GPT2 models."""
@@ -41,7 +38,6 @@ class GPT2Trainer:
             train_dataset=tokenized_dataset["train"],
             eval_dataset=tokenized_dataset["val"],
             tokenizer=model.tokenizer,
-            optimizers=(optim, sched),
         )
 
         print("Training...")
