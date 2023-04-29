@@ -1,6 +1,7 @@
 import random
 from collections import defaultdict
 
+import torch
 from colorama import Fore, Style
 from datasets import Dataset, DatasetDict
 from transformers import Trainer, TrainingArguments
@@ -31,6 +32,13 @@ class GPT2Trainer:
 
         tokenized_dataset = tokenize(dataset, model.tokenizer)
 
+        optim = torch.optim.AdamW(
+            model.model.parameters(), lr=training_args.learning_rate
+        )
+        sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer=optim, factor=0.1, patience=2
+        )
+
         trainer = Trainer(
             model=model.model,
             args=training_args,
@@ -38,6 +46,7 @@ class GPT2Trainer:
             train_dataset=tokenized_dataset["train"],
             eval_dataset=tokenized_dataset["val"],
             tokenizer=model.tokenizer,
+            optimizers=(optim, sched),
         )
 
         print("Training...")
