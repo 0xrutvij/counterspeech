@@ -144,3 +144,7 @@ dmypy.json
 
 
 _*/
+*.bbl
+*.brf
+*.pdf
+*.synctex.gz

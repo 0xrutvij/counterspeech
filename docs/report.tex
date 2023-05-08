@@ -1,0 +1,129 @@
+\documentclass[10pt,twocolumn]{article}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage[colorlinks, pagebackref=True]{hyperref}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textheight}{9.5in}
+\setlength{\textwidth}{6.6in}
+\setlength{\topmargin}{-1in}
+
+\title{\textbf{Generating Counter Speech Against Hate Speech}}
+
+\author{
+    Hayden Iske \and
+    Jaeseong Lee \and
+    Jason Kluge \and
+    Myanh Tran \and
+    Nawal Mahmood \and
+    Nikitha Chittalui \and
+    Rutvij Shah
+}
+
+\date{
+    \textit{University of Texas at Dallas}
+}
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Hate speech refers to abusive or threatening speech that denigrates, discriminates, or attacks towards individuals and communities.
+Increased use of hate speech on the Internet has become an important societal concern \cite{williams2019hatred}, and effective countermeasure of the hate speech without blocking freedom of speech is important in
+the Natural Language Processing (NLP) area. Accordingly, counterspeech, a response with non-negative feedback to hate
+speech that is supposed to promote alternative viewpoints, values, and attitudes, has been a promising countermeasure of hate speech.
+In this work, we focus on developing models to generate counterspeech given hate speech.
+We model appropriate counterspeech using the large language model (LLM) with the CONAN counterspeech dataset.
+Our experiments show that LLM generates various counterspeech candidates.
+
+\section{Data Overview}
+Our work leverages CONAN dataset to develop an NLP model that can automatically generate counterspeech
+responses to hate speech \cite{chung-etal-2019-conan}. The CONAN (COunter NArratives through Nichesourcing) dataset
+is a collection of 4,708 mutli-lingual hate speech and counter-narrative speech pairs sourced
+from various social media posts and comments from online sources such as Twitter, Reddit, and Gab.
+The dataset was created by researchers to develop tools to detect and counter online hate speech.
+
+
+\section{Models}
+We’re using natural language generation models to generate the counter speech: Bert2Bert, GPT2 and DialoGPT.
+
+\textbf{Bert2Bert}:  Bert2Bert is a simple sequence-to-sequence model using the BERT model instead of the
+RNN-based model \cite{chen2021bert2bert}. It can efficiently transfer the learned knowledge of the smaller model to the large model.
+
+
+\textbf{GPT2}: GPT-2 is a large transformer-based general-purpose model \cite{radford2019language}. It was pre-trained on 9 million web links from Reddit forum.
+For every comment with more than 3 upvotes that attached a link, the content of the web page is added to the training data. By that, the model is guaranteed to learn information from websites that are found useful by human evaluation.
+
+\textbf{DialoGPT}: DialoGPT is a tunable large scale neural network model for generation of
+conversational responses created by researchers from Microsoft,
+and was trained on Reddit data \cite{zhang2019dialogpt}. Being extended from GPT-2, DialogGPT is formulated
+as an autoregressive (AR) language model and uses a multi-layer transformer as model architecture.
+However, unlike GPT-2, DialoGPT is fine-tuned on large dialogue sessions extracted from Reddit discussion chains.
+For that reason, DialoGPT captures better conversational flow with finer granularity,
+more diverse and informational specific to the prompt.
+
+
+\section{Experimental Setup}
+
+\noindent \textbf{Models}  We use the Huggingface and SparkNLP NLP library for training and evaluating the models.
+Huggingface is a NLP platform that provides textual datasets and
+a variety of NLP pre-trained models \cite{huggingfaceDialoGPT}.
+SparkNLP is an open-source natural language processing library
+built on top of Apache Spark developed by John Snow Labs[cite].
+In the experiment, we use pre-trained Bert2Bert, GPT2 and DialoGPT
+models from Huggingface and GPT2 model from SparkNLP.
+
+
+\noindent \textbf{Fine-Tuning}  We fine-tune the models with the CONAN dataset.
+The number of epochs for the fine-tuning was 30. The batch size was 16. The learning rate was 5e-5.
+
+
+\noindent \textbf{Metrics}
+
+\begin{itemize}
+    \item \textbf{BLEU} \cite{papineni2002bleu} it is a score for comparing input text to reference text. N-grams of the input text match the N-grams of the reference texts in length. The higher score close to 1.0, the more overlap between the input and reference texts
+    \item \textbf{Toxicity} \cite{gehman2020realtoxicityprompts} Since counterspeech ideally should not contain any hate speech, toxicity of the input texts are measured using a pre-trained hate speech classification model.
+          In the evaluation, we measure the toxicity of the counterspeech and the toxicity ratio, the ratio of predictions with toxicity above a certain threshold, which we set to 0.5.
+\end{itemize}
+
+
+\section{Results}
+\begin{table}
+    \centering
+    \resizebox{\columnwidth}{!}{%
+        \begin{tabular}{|c|c|c|ll}
+            \cline{1-3}
+            \textbf{Model}                & \textbf{GPT2} & \textbf{DialoGPT} &  & \multicolumn{1}{c}{} \\ \cline{1-3}
+            \textbf{BLEU (Train)}         & 0.3405        & 0.4548            &  &                      \\ \cline{1-3}
+            \textbf{BLEU (Test)}          & 0.0328        & 0.0347            &  &                      \\ \cline{1-3}
+            \textbf{Toxicity Avg (Train)} & 0.198         & 0.352             &  &                      \\ \cline{1-3}
+            \textbf{Toxicity Avg (Test)}  & 0.1925        & 0.348             &  &                      \\ \cline{1-3}
+            \textbf{Tox Ratio (Train)}    & 0.188         & 0.344             &  &                      \\ \cline{1-3}
+            \textbf{Tox Ratio (Test)}     & 0.1835        & 0.340             &  &                      \\ \cline{1-3}
+        \end{tabular}%
+    }
+    \caption{Results of GPT2 and DialoGPT}
+    \label{tab:results}
+\end{table}
+
+\autoref{tab:results} shows the BLEU and Toxicity scores for all models on the counterspeech generation task. Each column represents metric scores on the train and test set for each model. It shows that all models achieve the smaller BLEU scores on the test set than the train set. Also, note that the two models and their metrics reveal an interesting tradeoff. While the DiabloGPT increases BLEU score, which is expected, it also results in an increase in toxicity of responses. This deserves some further attention in the future.
+In case of GPT2 from SparkNLP and Bert2Bert models, they are limited to show its competitive performance as the GPT2 and DialoGPT models in the Huggingface. For example, GPT2 from SparkNLP always generates texts the same as input hate speech. Likewise, Bert2Bert model generates ‘[unused1]’ tokens for every test cases.
+
+\section{Conclusion}
+In conclusion, the DiabloGPT performed better than the GPT model. Which is to be expected.
+Improvements, given more time and computational power, could be achieved with both models.
+We also think the addition of more diverse data would improve the results, the CONAN dataset
+includes multiple hate speech inputs with the same counter speech.
+Future work might include trying different metrics to analyze the models,
+leveraging hate speech domain knowledge, data augmentation, as well as testing with other models.
+
+\section{Contributions}
+Hayden, Jason, Myanh, and Nawal worked on writing the report and presentation. Jaesong, Nikitha,
+and Rutvij worked on the code and models.
+
+
+\bibliography{report}
+\bibliographystyle{plain}
+
+\end{document}
